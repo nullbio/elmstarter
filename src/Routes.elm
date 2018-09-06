@@ -17,7 +17,14 @@ routeParser : Parser (Route -> a) a
 routeParser =
     oneOf
         [ map Home top
+
+        --    , map SignIn (s "signin")
+        --    , map SignUp (s "signup")
+        --    , map SignOut (s "signout")
         , map Profile (s "profile" </> string)
+
+        --    , map Offers (s "offers")
+        --    , map Offer (s "offer" </> int)
         ]
 
 

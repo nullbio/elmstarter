@@ -4318,10 +4318,6 @@ var author$project$Main$LinkClicked = function (a) {
 var author$project$Main$UrlChanged = function (a) {
 	return {$: 'UrlChanged', a: a};
 };
-var elm$core$Basics$False = {$: 'False'};
-var author$project$Home$init = function (session) {
-	return {divShown: false, session: session};
-};
 var author$project$Main$HomeModel = function (a) {
 	return {$: 'HomeModel', a: a};
 };
@@ -4331,7 +4327,11 @@ var author$project$Main$NotFoundModel = function (a) {
 var author$project$Main$ProfileModel = function (a) {
 	return {$: 'ProfileModel', a: a};
 };
-var author$project$Profile$init = function (session) {
+var elm$core$Basics$False = {$: 'False'};
+var author$project$Page$Home$init = function (session) {
+	return {divShown: false, session: session};
+};
+var author$project$Page$Profile$init = function (session) {
 	return {divShown: false, session: session};
 };
 var author$project$Main$initSubModel = function (session) {
@@ -4339,13 +4339,16 @@ var author$project$Main$initSubModel = function (session) {
 	switch (_n0.$) {
 		case 'Home':
 			return author$project$Main$HomeModel(
-				author$project$Home$init(session));
+				author$project$Page$Home$init(session));
 		case 'Profile':
 			return author$project$Main$ProfileModel(
-				author$project$Profile$init(session));
+				author$project$Page$Profile$init(session));
 		default:
 			return author$project$Main$NotFoundModel(session);
 	}
+};
+var author$project$Page$Layout$init = function (session) {
+	return {};
 };
 var author$project$Routes$NotFound = {$: 'NotFound'};
 var author$project$Routes$Home = {$: 'Home'};
@@ -5701,7 +5704,10 @@ var author$project$Main$init = F3(
 		var route = author$project$Routes$makeRoute(url);
 		var session = {key: key, route: route, url: url, user: author$project$User$Guest};
 		return _Utils_Tuple2(
-			author$project$Main$initSubModel(session),
+			{
+				layoutModel: author$project$Page$Layout$init(session),
+				subModel: author$project$Main$initSubModel(session)
+			},
 			elm$core$Platform$Cmd$none);
 	});
 var elm$core$Platform$Sub$batch = _Platform_batch;
@@ -5709,7 +5715,48 @@ var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
 var author$project$Main$subscriptions = function (_n0) {
 	return elm$core$Platform$Sub$none;
 };
-var author$project$Home$update = F2(
+var author$project$Main$HomeMsg = function (a) {
+	return {$: 'HomeMsg', a: a};
+};
+var author$project$Main$LayoutMsg = function (a) {
+	return {$: 'LayoutMsg', a: a};
+};
+var author$project$Main$ProfileMsg = function (a) {
+	return {$: 'ProfileMsg', a: a};
+};
+var author$project$Main$toSession = function (model) {
+	var _n0 = model.subModel;
+	switch (_n0.$) {
+		case 'HomeModel':
+			var pageModel = _n0.a;
+			return pageModel.session;
+		case 'ProfileModel':
+			var pageModel = _n0.a;
+			return pageModel.session;
+		default:
+			var session = _n0.a;
+			return session;
+	}
+};
+var author$project$Main$updateSubModel = F2(
+	function (model, _n0) {
+		var pageModel = _n0.a;
+		var cmdMsg = _n0.b;
+		return _Utils_Tuple2(
+			{layoutModel: model.layoutModel, subModel: pageModel},
+			cmdMsg);
+	});
+var elm$core$Platform$Cmd$map = _Platform_map;
+var author$project$Main$updateWith = F5(
+	function (subUpdateFn, pageModelToModelFn, pageMsgToMsgFn, pageMsg, pageModel) {
+		var _n0 = A2(subUpdateFn, pageMsg, pageModel);
+		var newSubModel = _n0.a;
+		var newSubMsg = _n0.b;
+		return _Utils_Tuple2(
+			pageModelToModelFn(newSubModel),
+			A2(elm$core$Platform$Cmd$map, pageMsgToMsgFn, newSubMsg));
+	});
+var author$project$Page$Home$update = F2(
 	function (msg, model) {
 		if (msg.$ === 'ShowDiv') {
 			return _Utils_Tuple2(
@@ -5725,36 +5772,11 @@ var author$project$Home$update = F2(
 				elm$core$Platform$Cmd$none);
 		}
 	});
-var author$project$Main$HomeMsg = function (a) {
-	return {$: 'HomeMsg', a: a};
-};
-var author$project$Main$ProfileMsg = function (a) {
-	return {$: 'ProfileMsg', a: a};
-};
-var author$project$Main$toSession = function (model) {
-	switch (model.$) {
-		case 'HomeModel':
-			var subModel = model.a;
-			return subModel.session;
-		case 'ProfileModel':
-			var subModel = model.a;
-			return subModel.session;
-		default:
-			var session = model.a;
-			return session;
-	}
-};
-var elm$core$Platform$Cmd$map = _Platform_map;
-var author$project$Main$updateWith = F5(
-	function (subUpdateFn, subModelToModelFn, subMsgToMsgFn, subMsg, subModel) {
-		var _n0 = A2(subUpdateFn, subMsg, subModel);
-		var newSubModel = _n0.a;
-		var newSubMsg = _n0.b;
-		return _Utils_Tuple2(
-			subModelToModelFn(newSubModel),
-			A2(elm$core$Platform$Cmd$map, subMsgToMsgFn, newSubMsg));
+var author$project$Page$Layout$update = F2(
+	function (msg, model) {
+		return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 	});
-var author$project$Profile$update = F2(
+var author$project$Page$Profile$update = F2(
 	function (msg, model) {
 		if (msg.$ === 'ShowDiv') {
 			return _Utils_Tuple2(
@@ -6059,7 +6081,7 @@ var elm$url$Url$toString = function (url) {
 };
 var author$project$Main$update = F2(
 	function (msg, model) {
-		var _n0 = _Utils_Tuple2(msg, model);
+		var _n0 = _Utils_Tuple2(msg, model.subModel);
 		switch (_n0.a.$) {
 			case 'LinkClicked':
 				var urlRequest = _n0.a.a;
@@ -6081,39 +6103,73 @@ var author$project$Main$update = F2(
 				var url = _n0.a.a;
 				var session = author$project$Main$toSession(model);
 				return _Utils_Tuple2(
-					author$project$Main$initSubModel(
-						_Utils_update(
-							session,
-							{
-								route: author$project$Routes$makeRoute(url),
-								url: url
-							})),
+					_Utils_update(
+						model,
+						{
+							subModel: author$project$Main$initSubModel(
+								_Utils_update(
+									session,
+									{
+										route: author$project$Routes$makeRoute(url),
+										url: url
+									}))
+						}),
 					elm$core$Platform$Cmd$none);
+			case 'LayoutMsg':
+				var pageMsg = _n0.a.a;
+				var _n2 = A2(author$project$Page$Layout$update, pageMsg, model.layoutModel);
+				var layoutModel = _n2.a;
+				var layoutMsg = _n2.b;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{layoutModel: layoutModel}),
+					A2(elm$core$Platform$Cmd$map, author$project$Main$LayoutMsg, layoutMsg));
 			case 'HomeMsg':
 				if (_n0.b.$ === 'HomeModel') {
-					var subMsg = _n0.a.a;
-					var subModel = _n0.b.a;
-					return A5(author$project$Main$updateWith, author$project$Home$update, author$project$Main$HomeModel, author$project$Main$HomeMsg, subMsg, subModel);
+					var pageMsg = _n0.a.a;
+					var pageModel = _n0.b.a;
+					return A2(
+						author$project$Main$updateSubModel,
+						model,
+						A5(author$project$Main$updateWith, author$project$Page$Home$update, author$project$Main$HomeModel, author$project$Main$HomeMsg, pageMsg, pageModel));
 				} else {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				}
 			default:
 				if (_n0.b.$ === 'ProfileModel') {
-					var subMsg = _n0.a.a;
-					var subModel = _n0.b.a;
-					return A5(author$project$Main$updateWith, author$project$Profile$update, author$project$Main$ProfileModel, author$project$Main$ProfileMsg, subMsg, subModel);
+					var pageMsg = _n0.a.a;
+					var pageModel = _n0.b.a;
+					return A2(
+						author$project$Main$updateSubModel,
+						model,
+						A5(author$project$Main$updateWith, author$project$Page$Profile$update, author$project$Main$ProfileModel, author$project$Main$ProfileMsg, pageMsg, pageModel));
 				} else {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				}
 		}
 	});
-var author$project$Home$HideDiv = {$: 'HideDiv'};
-var author$project$Home$ShowDiv = {$: 'ShowDiv'};
-var elm$html$Html$a = _VirtualDom_node('a');
-var elm$html$Html$button = _VirtualDom_node('button');
 var elm$html$Html$div = _VirtualDom_node('div');
+var elm$html$Html$h1 = _VirtualDom_node('h1');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
+var author$project$Page$Layout$footer = function (model) {
+	return A2(
+		elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				A2(
+				elm$html$Html$h1,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text('footer')
+					]))
+			]));
+};
+var elm$html$Html$a = _VirtualDom_node('a');
+var elm$html$Html$li = _VirtualDom_node('li');
 var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -6128,6 +6184,81 @@ var elm$html$Html$Attributes$href = function (url) {
 		'href',
 		_VirtualDom_noJavaScriptUri(url));
 };
+var author$project$Page$Layout$link = F2(
+	function (name, path) {
+		return A2(
+			elm$html$Html$li,
+			_List_Nil,
+			_List_fromArray(
+				[
+					A2(
+					elm$html$Html$a,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$href(path)
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text(name)
+						]))
+				]));
+	});
+var elm$html$Html$ul = _VirtualDom_node('ul');
+var author$project$Page$Layout$header = function (model) {
+	return A2(
+		elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				A2(
+				elm$html$Html$ul,
+				_List_Nil,
+				_List_fromArray(
+					[
+						A2(author$project$Page$Layout$link, 'Home', '/'),
+						A2(author$project$Page$Layout$link, 'Profile', '/profile/bob'),
+						A2(author$project$Page$Layout$link, 'Nothing', '/lol404plz')
+					]))
+			]));
+};
+var elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
+var elm$html$Html$map = elm$virtual_dom$VirtualDom$map;
+var author$project$Main$applyLayout = F2(
+	function (model, doc) {
+		var header = A2(
+			elm$html$Html$map,
+			author$project$Main$LayoutMsg,
+			author$project$Page$Layout$header(model.layoutModel));
+		var footer = A2(
+			elm$html$Html$map,
+			author$project$Main$LayoutMsg,
+			author$project$Page$Layout$footer(model.layoutModel));
+		var body = doc.body;
+		return _Utils_update(
+			doc,
+			{
+				body: _Utils_ap(
+					A2(elm$core$List$cons, header, body),
+					_List_fromArray(
+						[footer]))
+			});
+	});
+var author$project$Main$mapDocumentMsg = F2(
+	function (msgMaker, document) {
+		var _n0 = document;
+		var title = _n0.title;
+		var body = _n0.body;
+		return {
+			body: A2(
+				elm$core$List$map,
+				elm$html$Html$map(msgMaker),
+				body),
+			title: title
+		};
+	});
+var author$project$Page$Home$HideDiv = {$: 'HideDiv'};
+var author$project$Page$Home$ShowDiv = {$: 'ShowDiv'};
+var elm$html$Html$button = _VirtualDom_node('button');
 var elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -6145,7 +6276,7 @@ var elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		elm$json$Json$Decode$succeed(msg));
 };
-var author$project$Home$view = function (model) {
+var author$project$Page$Home$view = function (model) {
 	return {
 		body: _List_fromArray(
 			[
@@ -6157,20 +6288,10 @@ var author$project$Home$view = function (model) {
 						elm$html$Html$text('i\'m home!')
 					])),
 				A2(
-				elm$html$Html$a,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$href('/profile/sam')
-					]),
-				_List_fromArray(
-					[
-						elm$html$Html$text('Sam\'s Profile')
-					])),
-				A2(
 				elm$html$Html$button,
 				_List_fromArray(
 					[
-						elm$html$Html$Events$onClick(author$project$Home$ShowDiv)
+						elm$html$Html$Events$onClick(author$project$Page$Home$ShowDiv)
 					]),
 				_List_fromArray(
 					[
@@ -6180,7 +6301,7 @@ var author$project$Home$view = function (model) {
 				elm$html$Html$button,
 				_List_fromArray(
 					[
-						elm$html$Html$Events$onClick(author$project$Home$HideDiv)
+						elm$html$Html$Events$onClick(author$project$Page$Home$HideDiv)
 					]),
 				_List_fromArray(
 					[
@@ -6197,24 +6318,24 @@ var author$project$Home$view = function (model) {
 		title: 'home page'
 	};
 };
-var elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
-var elm$html$Html$map = elm$virtual_dom$VirtualDom$map;
-var author$project$Main$mapDocumentMsg = F2(
-	function (msgMaker, document) {
-		var _n0 = document;
-		var title = _n0.title;
-		var body = _n0.body;
-		return {
-			body: A2(
-				elm$core$List$map,
-				elm$html$Html$map(msgMaker),
-				body),
-			title: title
-		};
-	});
-var author$project$Profile$HideDiv = {$: 'HideDiv'};
-var author$project$Profile$ShowDiv = {$: 'ShowDiv'};
-var author$project$Profile$view = function (model) {
+var author$project$Page$NotFound$view = function (session) {
+	return {
+		body: _List_fromArray(
+			[
+				A2(
+				elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text('waddaya doin!')
+					]))
+			]),
+		title: 'not found'
+	};
+};
+var author$project$Page$Profile$HideDiv = {$: 'HideDiv'};
+var author$project$Page$Profile$ShowDiv = {$: 'ShowDiv'};
+var author$project$Page$Profile$view = function (model) {
 	return {
 		body: _List_fromArray(
 			[
@@ -6229,7 +6350,7 @@ var author$project$Profile$view = function (model) {
 				elm$html$Html$button,
 				_List_fromArray(
 					[
-						elm$html$Html$Events$onClick(author$project$Profile$ShowDiv)
+						elm$html$Html$Events$onClick(author$project$Page$Profile$ShowDiv)
 					]),
 				_List_fromArray(
 					[
@@ -6239,7 +6360,7 @@ var author$project$Profile$view = function (model) {
 				elm$html$Html$button,
 				_List_fromArray(
 					[
-						elm$html$Html$Events$onClick(author$project$Profile$HideDiv)
+						elm$html$Html$Events$onClick(author$project$Page$Profile$HideDiv)
 					]),
 				_List_fromArray(
 					[
@@ -6257,33 +6378,32 @@ var author$project$Profile$view = function (model) {
 	};
 };
 var author$project$Main$view = function (model) {
-	switch (model.$) {
+	var _n0 = model.subModel;
+	switch (_n0.$) {
 		case 'HomeModel':
-			var subModel = model.a;
+			var pageModel = _n0.a;
 			return A2(
-				author$project$Main$mapDocumentMsg,
-				author$project$Main$HomeMsg,
-				author$project$Home$view(subModel));
+				author$project$Main$applyLayout,
+				model,
+				A2(
+					author$project$Main$mapDocumentMsg,
+					author$project$Main$HomeMsg,
+					author$project$Page$Home$view(pageModel)));
 		case 'ProfileModel':
-			var subModel = model.a;
+			var pageModel = _n0.a;
 			return A2(
-				author$project$Main$mapDocumentMsg,
-				author$project$Main$ProfileMsg,
-				author$project$Profile$view(subModel));
+				author$project$Main$applyLayout,
+				model,
+				A2(
+					author$project$Main$mapDocumentMsg,
+					author$project$Main$ProfileMsg,
+					author$project$Page$Profile$view(pageModel)));
 		default:
-			return {
-				body: _List_fromArray(
-					[
-						A2(
-						elm$html$Html$div,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text('not found')
-							]))
-					]),
-				title: 'not found'
-			};
+			var session = _n0.a;
+			return A2(
+				author$project$Main$applyLayout,
+				model,
+				author$project$Page$NotFound$view(session));
 	}
 };
 var elm$browser$Browser$application = _Browser_application;

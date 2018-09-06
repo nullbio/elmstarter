@@ -1,9 +1,8 @@
-module Home exposing (..)
+module Page.Profile exposing (..)
 
 import Browser
 import Html exposing (..)
 import Html.Events exposing (..)
-import Html.Attributes exposing (href)
 import Session exposing (Session)
 
 
@@ -37,14 +36,13 @@ update msg model =
 
 view : Model -> Browser.Document Msg
 view model =
-    { title = "home page"
+    { title = "profile page"
     , body =
-        [ div [] [ text "i'm home!" ]
-        , a [ href "/profile/sam" ] [ text "Sam's Profile" ]
+        [ div [] [ text "i'm a god damn profile" ]
         , button [ onClick ShowDiv ] [ text "show" ]
         , button [ onClick HideDiv ] [ text "hide" ]
         , (if model.divShown then
-            div [] [ text "this is the thing that is hiders" ]
+            div [] [ text "waddayadoin" ]
            else
             text ""
           )

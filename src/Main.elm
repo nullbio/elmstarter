@@ -7,16 +7,24 @@ import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Routes exposing (Route)
-import Home
-import Profile
 import Session exposing (Session)
 import User
+import Page.Home as Home
+import Page.Profile as Profile
+import Page.NotFound as NotFound
+import Page.Layout as Layout
 
 
 -- MODEL
 
 
-type Model
+type alias Model =
+    { subModel : SubModel
+    , layoutModel : Layout.Model
+    }
+
+
+type SubModel
     = HomeModel Home.Model
     | ProfileModel Profile.Model
     | NotFoundModel Session
@@ -35,10 +43,10 @@ init flags url key =
             , user = User.Guest
             }
     in
-        ( initSubModel session, Cmd.none )
+        ( { subModel = initSubModel session, layoutModel = Layout.init session }, Cmd.none )
 
 
-initSubModel : Session -> Model
+initSubModel : Session -> SubModel
 initSubModel session =
     case session.route of
         Routes.Home ->
@@ -60,11 +68,12 @@ type Msg
     | UrlChanged Url.Url
     | HomeMsg Home.Msg
     | ProfileMsg Profile.Msg
+    | LayoutMsg Layout.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( msg, model ) of
+    case ( msg, model.subModel ) of
         ( LinkClicked urlRequest, _ ) ->
             (case urlRequest of
                 Browser.Internal url ->
@@ -79,13 +88,20 @@ update msg model =
                 session =
                     toSession model
             in
-                ( initSubModel { session | url = url, route = Routes.makeRoute url }, Cmd.none )
+                ( { model | subModel = initSubModel { session | url = url, route = Routes.makeRoute url } }, Cmd.none )
 
-        ( HomeMsg subMsg, HomeModel subModel ) ->
-            updateWith Home.update HomeModel HomeMsg subMsg subModel
+        ( HomeMsg pageMsg, HomeModel pageModel ) ->
+            updateSubModel model <| updateWith Home.update HomeModel HomeMsg pageMsg pageModel
 
-        ( ProfileMsg subMsg, ProfileModel subModel ) ->
-            updateWith Profile.update ProfileModel ProfileMsg subMsg subModel
+        ( ProfileMsg pageMsg, ProfileModel pageModel ) ->
+            updateSubModel model <| updateWith Profile.update ProfileModel ProfileMsg pageMsg pageModel
+
+        ( LayoutMsg pageMsg, _ ) ->
+            let
+                ( layoutModel, layoutMsg ) =
+                    Layout.update pageMsg model.layoutModel
+            in
+                ( { model | layoutModel = layoutModel }, Cmd.map LayoutMsg layoutMsg )
 
         ( HomeMsg _, _ ) ->
             -- Disregard home messages for the wrong model, impossible route
@@ -95,25 +111,30 @@ update msg model =
             ( model, Cmd.none )
 
 
-updateWith : (subMsg -> subModel -> ( subModel, Cmd subMsg )) -> (subModel -> Model) -> (subMsg -> Msg) -> subMsg -> subModel -> ( Model, Cmd Msg )
-updateWith subUpdateFn subModelToModelFn subMsgToMsgFn subMsg subModel =
+updateWith : (pageMsg -> pageModel -> ( pageModel, Cmd pageMsg )) -> (pageModel -> SubModel) -> (pageMsg -> Msg) -> pageMsg -> pageModel -> ( SubModel, Cmd Msg )
+updateWith subUpdateFn pageModelToModelFn pageMsgToMsgFn pageMsg pageModel =
     -- updateWith calls the subUpdate function and changes the return
-    -- from (subModel, Cmd subMsg) to (Model, Cmd Msg)
+    -- from (pageModel, Cmd pageMsg) to (Model, Cmd Msg)
     let
         ( newSubModel, newSubMsg ) =
-            subUpdateFn subMsg subModel
+            subUpdateFn pageMsg pageModel
     in
-        ( subModelToModelFn newSubModel, Cmd.map subMsgToMsgFn newSubMsg )
+        ( pageModelToModelFn newSubModel, Cmd.map pageMsgToMsgFn newSubMsg )
+
+
+updateSubModel : Model -> ( SubModel, Cmd Msg ) -> ( Model, Cmd Msg )
+updateSubModel model ( pageModel, cmdMsg ) =
+    ( { subModel = pageModel, layoutModel = model.layoutModel }, cmdMsg )
 
 
 toSession : Model -> Session
 toSession model =
-    case model of
-        HomeModel subModel ->
-            subModel.session
+    case model.subModel of
+        HomeModel pageModel ->
+            pageModel.session
 
-        ProfileModel subModel ->
-            subModel.session
+        ProfileModel pageModel ->
+            pageModel.session
 
         NotFoundModel session ->
             session
@@ -135,15 +156,33 @@ mapDocumentMsg msgMaker document =
 
 view : Model -> Browser.Document Msg
 view model =
-    case model of
-        HomeModel subModel ->
-            mapDocumentMsg HomeMsg (Home.view subModel)
+    -- view calls the subView function and changes the return from
+    -- Browser.Document SubMsg to Browser.Document Msg
+    case model.subModel of
+        HomeModel pageModel ->
+            applyLayout model <| mapDocumentMsg HomeMsg (Home.view pageModel)
 
-        ProfileModel subModel ->
-            mapDocumentMsg ProfileMsg (Profile.view subModel)
+        ProfileModel pageModel ->
+            applyLayout model <| mapDocumentMsg ProfileMsg (Profile.view pageModel)
 
-        NotFoundModel _ ->
-            { title = "not found", body = [ div [] [ text "not found" ] ] }
+        NotFoundModel session ->
+            applyLayout model <| NotFound.view session
+
+
+applyLayout : Model -> Browser.Document Msg -> Browser.Document Msg
+applyLayout model doc =
+    -- applyLayout applies the layout header and footer to between a page view
+    let
+        body =
+            doc.body
+
+        header =
+            Html.map LayoutMsg <| Layout.header model.layoutModel
+
+        footer =
+            Html.map LayoutMsg <| Layout.footer model.layoutModel
+    in
+        { doc | body = (header :: body) ++ [ footer ] }
 
 
 
