@@ -1,56 +1,49 @@
-module Page.Home exposing (..)
+module Page.Home exposing (Model, Msg(..), init, update, view)
 
 import Browser
-import Html exposing (..)
-import Html.Events exposing (..)
-import Html.Attributes exposing (href)
-import Session exposing (Session)
+import Html exposing (button, div, text)
+import Html.Events exposing (onClick)
+import Msgs
+import Session
 
 
 type Msg
-    = ShowDiv
-    | HideDiv
+    = ShowDivMsg
+    | HideDivMsg
 
 
 type alias Model =
-    { session : Session
-    , divShown : Bool
+    { divShown : Bool
     }
 
 
-init : Session -> Model
-init session =
-    { session = session
-    , divShown = False
+init : Model
+init =
+    { divShown = False
     }
 
 
-update : Msg -> Model -> ( Model, Cmd msg )
-update msg model =
+update : Msg -> Model -> Session.Session -> ( Model, Session.Session, Cmd (Msgs.Wrapper Msg) )
+update msg model session =
     case msg of
-        ShowDiv ->
-            ( { model | divShown = True }, Cmd.none )
+        ShowDivMsg ->
+            ( { model | divShown = True }, session, Cmd.none )
 
-        HideDiv ->
-            ( { model | divShown = False }, Cmd.none )
+        HideDivMsg ->
+            ( { model | divShown = False }, session, Cmd.none )
 
 
-view : Model -> Browser.Document Msg
-view model =
+view : Model -> Session.Session -> Browser.Document Msg
+view model session =
     { title = "home page"
     , body =
         [ div [] [ text "i'm home!" ]
-        , button [ onClick ShowDiv ] [ text "show" ]
-        , button [ onClick HideDiv ] [ text "hide" ]
-        , (if model.divShown then
+        , button [ onClick ShowDivMsg ] [ text "show" ]
+        , button [ onClick HideDivMsg ] [ text "hide" ]
+        , if model.divShown then
             div [] [ text "this is the thing that is hiders" ]
-           else
+
+          else
             text ""
-          )
         ]
     }
-
-
-toSession : Model -> Session
-toSession model =
-    model.session

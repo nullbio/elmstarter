@@ -1,4 +1,4 @@
-module Page.Profile exposing (Model, Msg(..), init, update, view)
+module Page.Settings exposing (Model, Msg(..), init, update, view)
 
 import Browser
 import Html exposing (..)
@@ -27,6 +27,6 @@ update msg model session =
 
 view : Model -> Session.Session -> Browser.Document Msg
 view model session =
-    { title = "profile page"
-    , body = [ div [] [ text "i'm a god damn profile" ] ]
+    { title = "settings page"
+    , body = [ div [] [ text "settings here, settings there, settings everywhere" ] ]
     }

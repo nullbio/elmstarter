@@ -1,0 +1,30 @@
+{
+	"name": "elmstarter",
+	"version": "0.1.0",
+	"description": "Webpack setup for elmstarter front-end",
+	"author": "Volatile Technologies",
+	"license": "SEE LICENSE IN README.md",
+	"scripts": {
+		"start": "npm run dev",
+		"dev": "webpack-serve --port 8080",
+		"build": "webpack -p"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/volatiletech/elmstarter.git"
+	},
+	"devDependencies": {
+		"clean-webpack-plugin": "^0.1.19",
+		"copy-webpack-plugin": "^4.5.2",
+		"elm": "^0.19.0",
+		"elm-hot-webpack-loader": "^1.0.1",
+		"elm-webpack-loader": "^5.0.0",
+		"html-webpack-plugin": "^3.2.0",
+		"koa-connect-history-api-fallback": "^0.3.1",
+		"npm": "^6.4.1",
+		"webpack": "^4.17.2",
+		"webpack-cli": "^3.1.0",
+		"webpack-merge": "^4.1.4",
+		"webpack-serve": "^2.0.2"
+	}
+}
