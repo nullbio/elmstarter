@@ -394,7 +394,7 @@ loadingView : AppState -> Browser.Document Msg
 loadingView state =
     case state of
         Loading _ ->
-            { title = "Tetra", body = [] }
+            { title = "elmstarter", body = [] }
 
         Loaded model ->
             view model
